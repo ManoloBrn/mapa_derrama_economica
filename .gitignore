@@ -18,12 +18,19 @@ web_modules/
 # Output directories
 dist/
 dist-ssr/
+.vite/
+.cache/
+
+# Node-specific
+.node_repl_history
+.eslintcache
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea/
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
