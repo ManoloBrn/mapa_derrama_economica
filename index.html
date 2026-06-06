@@ -52,6 +52,18 @@
             <button class="btn btn-preset" data-preset="monterrey" type="button">Estadio BBVA (MTY)</button>
             <button class="btn btn-preset" data-preset="guadalajara" type="button">Estadio Akron (GDL)</button>
           </div>
+          
+          <div class="search-box-container">
+            <div class="search-input-wrapper">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" id="address-search-input" placeholder="Buscar dirección o lugar (ej. Reforma)...">
+              <button class="btn-search-clear hide" id="btn-search-clear" type="button" aria-label="Limpiar búsqueda">
+                <i data-lucide="x"></i>
+              </button>
+            </div>
+            <div id="search-suggestions" class="search-suggestions-box hide"></div>
+          </div>
+
           <div class="current-coords-box">
             <span class="coord-label">Ubicación seleccionada:</span>
             <span id="current-coords-val" class="coord-val">Lat: 19.3029, Lng: -99.1505</span>
@@ -204,6 +216,56 @@
                 <p class="factor-help">Calcula la derrama de transporte y el consumo satélite en los quioscos o locales dentro/adyacentes a las estaciones del metro.</p>
               </div>
             </details>
+
+            <!-- Factor Restaurantes -->
+            <details class="factor-details">
+              <summary>
+                <span class="summary-title"><i data-lucide="utensils" class="color-restaurant"></i> Restaurantes y Cafeterías</span>
+                <i data-lucide="chevron-down" class="chevron"></i>
+              </summary>
+              <div class="details-content">
+                <div class="control-row">
+                  <div class="control-header">
+                    <label for="restaurant-ticket">Ticket Promedio</label>
+                    <span class="badge-sub" id="restaurant-ticket-val">$180 MXN</span>
+                  </div>
+                  <input type="range" id="restaurant-ticket" min="50" max="600" step="10" value="180" class="slider">
+                </div>
+                <div class="control-row">
+                  <div class="control-header">
+                    <label for="restaurant-capture">Tasa de Captación</label>
+                    <span class="badge-sub" id="restaurant-capture-val">10%</span>
+                  </div>
+                  <input type="range" id="restaurant-capture" min="1" max="40" step="1" value="10" class="slider">
+                </div>
+                <p class="factor-help">Determina el consumo de alimentos/café de los asistentes en el área circundante del evento.</p>
+              </div>
+            </details>
+
+            <!-- Factor Bares -->
+            <details class="factor-details">
+              <summary>
+                <span class="summary-title"><i data-lucide="beer" class="color-bar"></i> Bares, Cantinas y Pubs</span>
+                <i data-lucide="chevron-down" class="chevron"></i>
+              </summary>
+              <div class="details-content">
+                <div class="control-row">
+                  <div class="control-header">
+                    <label for="bar-ticket">Ticket Promedio</label>
+                    <span class="badge-sub" id="bar-ticket-val">$250 MXN</span>
+                  </div>
+                  <input type="range" id="bar-ticket" min="80" max="1000" step="20" value="250" class="slider">
+                </div>
+                <div class="control-row">
+                  <div class="control-header">
+                    <label for="bar-capture">Tasa de Captación</label>
+                    <span class="badge-sub" id="bar-capture-val">8%</span>
+                  </div>
+                  <input type="range" id="bar-capture" min="1" max="30" step="1" value="8" class="slider">
+                </div>
+                <p class="factor-help">Calcula la derrama por consumo de bebidas y entretenimiento nocturno en los establecimientos cercanos.</p>
+              </div>
+            </details>
           </div>
         </section>
 
@@ -232,6 +294,8 @@
                 <circle id="segment-oxxo" cx="50" cy="50" r="40" fill="transparent" stroke="var(--accent-oxxo)" stroke-width="12" stroke-dasharray="251.2" stroke-dashoffset="251.2" transform="rotate(-90 50 50)"></circle>
                 <circle id="segment-hotel" cx="50" cy="50" r="40" fill="transparent" stroke="var(--accent-hotel)" stroke-width="12" stroke-dasharray="251.2" stroke-dashoffset="251.2" transform="rotate(-90 50 50)"></circle>
                 <circle id="segment-metro" cx="50" cy="50" r="40" fill="transparent" stroke="var(--accent-transport)" stroke-width="12" stroke-dasharray="251.2" stroke-dashoffset="251.2" transform="rotate(-90 50 50)"></circle>
+                <circle id="segment-restaurant" cx="50" cy="50" r="40" fill="transparent" stroke="var(--accent-restaurant)" stroke-width="12" stroke-dasharray="251.2" stroke-dashoffset="251.2" transform="rotate(-90 50 50)"></circle>
+                <circle id="segment-bar" cx="50" cy="50" r="40" fill="transparent" stroke="var(--accent-bar)" stroke-width="12" stroke-dasharray="251.2" stroke-dashoffset="251.2" transform="rotate(-90 50 50)"></circle>
                 <text x="50" y="55" text-anchor="middle" class="chart-center-text" id="chart-center-pct">100%</text>
               </svg>
               <div class="chart-legend">
@@ -250,6 +314,14 @@
                 <div class="legend-item" data-segment="metro">
                   <span class="dot bg-metro"></span>
                   <span class="legend-label">Metro / Transp.: <strong id="pct-metro">0%</strong></span>
+                </div>
+                <div class="legend-item" data-segment="restaurant">
+                  <span class="dot bg-restaurant"></span>
+                  <span class="legend-label">Restaurantes: <strong id="pct-restaurant">0%</strong></span>
+                </div>
+                <div class="legend-item" data-segment="bar">
+                  <span class="dot bg-bar"></span>
+                  <span class="legend-label">Bares / Pubs: <strong id="pct-bar">0%</strong></span>
                 </div>
               </div>
             </div>
@@ -272,6 +344,14 @@
             <div class="breakdown-item">
               <span class="breakdown-label"><i data-lucide="subway" class="color-transport"></i> Derrama en Transporte Público</span>
               <span class="breakdown-val" id="breakdown-val-metro">$0.00</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label"><i data-lucide="utensils" class="color-restaurant"></i> Derrama en Restaurantes</span>
+              <span class="breakdown-val" id="breakdown-val-restaurant">$0.00</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label"><i data-lucide="beer" class="color-bar"></i> Derrama en Bares / Pubs</span>
+              <span class="breakdown-val" id="breakdown-val-bar">$0.00</span>
             </div>
           </div>
         </section>
@@ -306,7 +386,7 @@
               <div class="formula-card">
                 <h4>Fórmula General</h4>
                 <div class="math-expr">
-                  D<sub>total</sub> = D<sub>evento</sub> + D<sub>oxxos</sub> + D<sub>hoteles</sub> + D<sub>transporte</sub>
+                  D<sub>total</sub> = D<sub>evento</sub> + D<sub>oxxos</sub> + D<sub>hoteles</sub> + D<sub>transporte</sub> + D<sub>restaurantes</sub> + D<sub>bares</sub>
                 </div>
               </div>
 
@@ -362,6 +442,32 @@
                   <li><strong>d<sub>k</sub>:</strong> Distancia de la estación al evento.</li>
                 </ul>
               </div>
+
+              <div class="formula-card">
+                <h4>5. Restaurantes (D<sub>restaurantes</sub>)</h4>
+                <p>Usa un decaimiento lineal según la distancia (<strong>d<sub>i</sub></strong>) al evento:</p>
+                <div class="math-expr">
+                  D<sub>restaurantes</sub> = &sum; A × T<sub>rest</sub> × C<sub>rest</sub> × (1 - d<sub>i</sub> / X)
+                </div>
+                <ul class="formula-vars">
+                  <li><strong>T<sub>rest</sub> (Ticket):</strong> <span class="val-var-restaurantticket">$180 MXN</span></li>
+                  <li><strong>C<sub>rest</sub> (Captación):</strong> <span class="val-var-restaurantcapture">10%</span></li>
+                  <li><strong>X (Radio):</strong> <span class="val-var-radius">1,000 m</span></li>
+                </ul>
+              </div>
+
+              <div class="formula-card">
+                <h4>6. Bares (D<sub>bares</sub>)</h4>
+                <p>Usa un decaimiento cuadrático concentrándose muy cerca del evento:</p>
+                <div class="math-expr">
+                  D<sub>bares</sub> = &sum; A × T<sub>bar</sub> × C<sub>bar</sub> × (1 - d<sub>i</sub> / X)<sup>2</sup>
+                </div>
+                <ul class="formula-vars">
+                  <li><strong>T<sub>bar</sub> (Ticket):</strong> <span class="val-var-barticket">$250 MXN</span></li>
+                  <li><strong>C<sub>bar</sub> (Captación):</strong> <span class="val-var-barcapture">8%</span></li>
+                  <li><strong>X (Radio):</strong> <span class="val-var-radius">1,000 m</span></li>
+                </ul>
+              </div>
             </div>
           </details>
         </section>
@@ -386,8 +492,8 @@
 
       <!-- Floating Controls en el Mapa -->
       <div class="map-floating-controls">
-        <!-- Control de Mapa de Calor -->
-        <div class="floating-panel glassmorphic">
+        <div class="floating-panel glassmorphic" style="display: flex; flex-direction: column; gap: 12px; min-width: 250px;">
+          <!-- Control de Mapa de Calor -->
           <div class="control-switch">
             <input type="checkbox" id="toggle-heatmap" checked>
             <label for="toggle-heatmap">
@@ -395,8 +501,15 @@
               <span class="switch-text">Mapa de Calor Activo</span>
             </label>
           </div>
+          <!-- Control de Exclusión de Ingreso del Evento -->
+          <div class="control-switch">
+            <input type="checkbox" id="exclude-event-spend">
+            <label for="exclude-event-spend">
+              <span class="switch-inner"></span>
+              <span class="switch-text">Excluir Ingreso del Evento</span>
+            </label>
+          </div>
         </div>
-
         <!-- Leyenda -->
         <div class="floating-panel legend-panel glassmorphic">
           <span class="legend-title">Intensidad de Derrama</span>
@@ -442,6 +555,8 @@
           <option value="oxxo" selected>Oxxo / Tienda de Conveniencia</option>
           <option value="hotel">Hotel / Hospedaje</option>
           <option value="metro">Estación de Metro / Transporte</option>
+          <option value="restaurant">Restaurante / Cafetería</option>
+          <option value="bar">Bar / Cantina / Pub</option>
         </select>
       </div>
 
@@ -496,6 +611,6 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <!-- Core Logic Script -->
-  <script type="module" src="app.js"></script>
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>

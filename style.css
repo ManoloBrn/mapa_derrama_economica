@@ -43,6 +43,10 @@
     --accent-hotel-glow: rgba(245, 158, 11, 0.15);
     --accent-transport: #a855f7;
     --accent-transport-glow: rgba(168, 85, 247, 0.15);
+    --accent-restaurant: #06b6d4;
+    --accent-restaurant-glow: rgba(6, 182, 212, 0.15);
+    --accent-bar: #f43f5e;
+    --accent-bar-glow: rgba(244, 63, 94, 0.15);
     --accent-formula: #ec4899;
     
     /* UI borders, shadows and sizes */
@@ -435,6 +439,8 @@
   .color-oxxo { color: var(--accent-oxxo); }
   .color-hotel { color: var(--accent-hotel); }
   .color-transport { color: var(--accent-transport); }
+  .color-restaurant { color: var(--accent-restaurant); }
+  .color-bar { color: var(--accent-bar); }
   
   .chevron {
     width: 16px;
@@ -578,6 +584,8 @@
   .bg-oxxo { background-color: var(--accent-oxxo); }
   .bg-hotel { background-color: var(--accent-hotel); }
   .bg-metro { background-color: var(--accent-transport); }
+  .bg-restaurant { background-color: var(--accent-restaurant); }
+  .bg-bar { background-color: var(--accent-bar); }
   
   .legend-label {
     font-size: 12px;
@@ -727,6 +735,10 @@
   .poi-hotel .poi-value-badge { color: var(--accent-hotel); background-color: var(--accent-hotel-glow); }
   .poi-metro .poi-icon { background-color: var(--accent-transport-glow); color: var(--accent-transport); }
   .poi-metro .poi-value-badge { color: var(--accent-transport); background-color: var(--accent-transport-glow); }
+  .poi-restaurant .poi-icon { background-color: var(--accent-restaurant-glow); color: var(--accent-restaurant); }
+  .poi-restaurant .poi-value-badge { color: var(--accent-restaurant); background-color: var(--accent-restaurant-glow); }
+  .poi-bar .poi-icon { background-color: var(--accent-bar-glow); color: var(--accent-bar); }
+  .poi-bar .poi-value-badge { color: var(--accent-bar); background-color: var(--accent-bar-glow); }
   
   /* Custom Map POI Markers */
   .custom-map-poi {
@@ -775,6 +787,22 @@
   }
   .poi-metro-marker .poi-map-marker-pin svg {
     color: var(--accent-transport);
+  }
+  
+  .poi-restaurant-marker .poi-map-marker-pin {
+    border-color: var(--accent-restaurant);
+    box-shadow: 0 0 10px var(--accent-restaurant-glow);
+  }
+  .poi-restaurant-marker .poi-map-marker-pin svg {
+    color: var(--accent-restaurant);
+  }
+  
+  .poi-bar-marker .poi-map-marker-pin {
+    border-color: var(--accent-bar);
+    box-shadow: 0 0 10px var(--accent-bar-glow);
+  }
+  .poi-bar-marker .poi-map-marker-pin svg {
+    color: var(--accent-bar);
   }
   
   /* Hover effects on map markers */
@@ -1346,6 +1374,126 @@
   .popup-oxxo-text { color: var(--accent-oxxo); }
   .popup-hotel-text { color: var(--accent-hotel); }
   .popup-metro-text { color: var(--accent-transport); }
+  .popup-restaurant-text { color: var(--accent-restaurant); }
+  .popup-bar-text { color: var(--accent-bar); }
+  /* Search Box Styles */
+  .search-box-container {
+    position: relative;
+    width: 100%;
+    margin-top: 12px;
+  }
+  
+  .search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .search-input-wrapper input {
+    width: 100%;
+    padding: 12px 40px 12px 38px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-size: 13px;
+    transition: all 0.2s ease;
+  }
+  
+  .search-input-wrapper input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px var(--accent-blue-glow);
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  
+  .search-input-wrapper .search-icon {
+    position: absolute;
+    left: 12px;
+    width: 16px;
+    height: 16px;
+    color: var(--text-secondary);
+    pointer-events: none;
+  }
+  
+  .btn-search-clear {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+  
+  .btn-search-clear:hover {
+    color: #fff;
+  }
+  
+  .btn-search-clear svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .search-suggestions-box {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    margin-top: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: var(--shadow-soft);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  }
+  
+  .search-suggestions-box::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .search-suggestions-box::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+  }
+  
+  .suggestion-item {
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    text-align: left;
+  }
+  
+  .suggestion-item:last-child {
+    border-bottom: none;
+  }
+  
+  .suggestion-item:hover {
+    background-color: var(--bg-card-hover);
+    color: #fff;
+  }
+  
+  .suggestion-item-empty {
+    padding: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
 }
 
 /* ==========================================================================
@@ -1394,4 +1542,16 @@
   .legend-panel {
     min-width: 180px;
   }
+}
+
+/* Excluded event breakdown item and chart legend */
+.breakdown-item.muted-excluded {
+  opacity: 0.55;
+  text-decoration: line-through;
+  border-color: rgba(255, 255, 255, 0.03);
+  transition: all 0.3s ease;
+}
+
+.legend-item.hide {
+  display: none !important;
 }
