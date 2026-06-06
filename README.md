@@ -1,6 +1,6 @@
-# EconHeat 📈🔥
+# mapa_derrama_economica 📈🔥
 
-**EconHeat** es una aplicación web interactiva premium diseñada para simular y visualizar la **derrama económica potencial** generada alrededor de eventos masivos (conciertos, partidos de fútbol, festivales) dentro de un radio urbano de búsqueda configurable.
+**mapa_derrama_economica** es una aplicación web interactiva premium diseñada para simular y visualizar la **derrama económica potencial** generada alrededor de eventos masivos (conciertos, partidos de fútbol, festivales) dentro de un radio urbano de búsqueda configurable.
 
 La herramienta utiliza un modelo híbrido de geolocalización que consulta ubicaciones reales de comercios locales (**Oxxos**), alojamientos (**Hoteles**), transporte público (**Estaciones de Metro**), **Restaurantes y Cafeterías**, y **Bares y Pubs** para proyectar el impacto económico a través de un mapa de calor y widgets estadísticos dinámicos.
 

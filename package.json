@@ -1,5 +1,5 @@
 {
-  "name": "econ-heat-visualizer",
+  "name": "mapa-derrama-economica",
   "version": "1.0.0",
   "description": "Visualizador e impacto de derrama económica alrededor de eventos con mapa de calor",
   "main": "index.html",
