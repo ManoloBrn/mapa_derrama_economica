@@ -53,18 +53,13 @@ Asegúrate de tener instalado:
 
 Sigue estos sencillos pasos para instalar y ejecutar el simulador localmente:
 
-### 1. Entrar al directorio
-```bash
-cd analisis_economico_1
-```
-
-### 2. Instalar las dependencias
+### 1. Instalar las dependencias
 Descarga Vite y las herramientas del entorno de desarrollo necesarias:
 ```bash
 npm install
 ```
 
-### 3. Iniciar el Servidor de Desarrollo
+### 2. Iniciar el Servidor de Desarrollo
 ```bash
 npm run dev
 ```
@@ -72,14 +67,14 @@ Al iniciarse, la terminal te mostrará enlaces similares a estos:
 * **Local**: `http://localhost:5173/`
 * **Network**: `http://192.168.X.X:5173/` (Usa esta dirección para abrir la app en tu celular).
 
-### 4. Compilar para Producción
+### 3. Compilar para Producción
 Para optimizar el código y generar la build final lista para subir a un servidor web estático:
 ```bash
 npm run build
 ```
 Los archivos optimizados se guardarán en la carpeta `dist/`.
 
-### 5. Previsualizar la Compilación
+### 4. Previsualizar la Compilación
 Para probar localmente cómo corre el código final compilado de producción:
 ```bash
 npm run preview
