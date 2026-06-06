@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Derrama Económica | Impacto de Eventos en Tiempo Real</title>
+  
+  <!-- Meta tags SEO -->
+  <meta name="description" content="Simula y visualiza en un mapa de calor el impacto y derrama económica potencial de un evento masivo considerando comercios locales (Oxxos), hoteles y transporte público.">
+  <meta name="keywords" content="derrama economica, mapa de calor, simulador, impacto economico, leaflet, oxxo, hoteles, transporte publico">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  
+  <div class="app-container">
+    <!-- Sidebar: Panel de Control y Estadísticas -->
+    <aside class="sidebar" id="sidebar" role="complementary" aria-label="Panel de configuración y resultados">
+      
+      <!-- Encabezado -->
+      <header class="sidebar-header">
+        <div class="logo-area">
+          <div class="logo-icon">
+            <i data-lucide="trending-up"></i>
+          </div>
+          <h1>EconHeat</h1>
+        </div>
+        <p class="subtitle">Simulador de Derrama Económica en Entornos Urbanos</p>
+      </header>
+
+      <!-- Panel de Controles -->
+      <div class="sidebar-content">
+        
+        <!-- Sección 1: Presets e Instrucción -->
+        <section class="config-section" aria-labelledby="section-presets-title">
+          <h2 id="section-presets-title" class="section-title">
+            <i data-lucide="map-pin"></i> 1. Selecciona Ubicación del Evento
+          </h2>
+          <p class="section-desc">Haz clic en el mapa para colocar el evento o elige uno de nuestros ejemplos rápidos:</p>
+          <div class="preset-grid">
+            <button class="btn btn-preset active" data-preset="azteca" type="button">Estadio Azteca</button>
+            <button class="btn btn-preset" data-preset="auditorio" type="button">Auditorio Nacional</button>
+            <button class="btn btn-preset" data-preset="monterrey" type="button">Estadio BBVA (MTY)</button>
+            <button class="btn btn-preset" data-preset="guadalajara" type="button">Estadio Akron (GDL)</button>
+          </div>
+          <div class="current-coords-box">
+            <span class="coord-label">Ubicación seleccionada:</span>
+            <span id="current-coords-val" class="coord-val">Lat: 19.3029, Lng: -99.1505</span>
+          </div>
+        </section>
+
+        <!-- Sección de Configuración de API / Datos Reales -->
+        <section class="config-section" aria-labelledby="section-api-title">
+          <details class="factor-details" id="api-settings-details">
+            <summary>
+              <span class="summary-title"><i data-lucide="database" class="color-oxxo"></i> Conexión a Datos Reales</span>
+              <i data-lucide="chevron-down" class="chevron"></i>
+            </summary>
+            <div class="details-content">
+              <div class="input-group">
+                <label for="google-api-key">Google Places API Key (Opcional)</label>
+                <input type="password" id="google-api-key" placeholder="AIzaSy..." class="font-subfields">
+              </div>
+              <div class="api-status-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                <span class="coord-label">Fuente activa:</span>
+                <span id="api-status-badge" class="badge-sub font-subfields" style="background-color: var(--accent-oxxo-glow); color: var(--accent-oxxo); border: 1px solid rgba(16, 185, 129, 0.3);">OpenStreetMap (Overpass)</span>
+              </div>
+              <p class="factor-help">Por defecto se consulta OpenStreetMap gratis. Si ingresas una clave de GCP, se cargará Google Places para mayor precisión.</p>
+            </div>
+          </details>
+        </section>
+
+        <!-- Sección 2: Configuración del Evento -->
+        <section class="config-section" aria-labelledby="section-event-title">
+          <h2 id="section-event-title" class="section-title">
+            <i data-lucide="sliders"></i> 2. Parámetros del Evento & Radio
+          </h2>
+          
+          <div class="input-group">
+            <label for="event-name">Nombre del Evento</label>
+            <input type="text" id="event-name" value="Gran Concierto Masivo" placeholder="Ej. Partido de Fútbol, Concierto...">
+          </div>
+
+          <div class="control-row">
+            <div class="control-header">
+              <label for="event-attendance">Asistencia Estimada</label>
+              <span class="badge" id="attendance-val">25,000 personas</span>
+            </div>
+            <input type="range" id="event-attendance" min="1000" max="100000" step="1000" value="25000" class="slider">
+          </div>
+
+          <div class="control-row">
+            <div class="control-header">
+              <label for="event-ticket-price">Precio Promedio Boleto</label>
+              <span class="badge" id="event-ticket-price-val">$350 MXN</span>
+            </div>
+            <input type="range" id="event-ticket-price" min="0" max="5000" step="50" value="350" class="slider">
+          </div>
+
+          <div class="control-row">
+            <div class="control-header">
+              <label for="event-venue-spend">Consumo Interno Promedio</label>
+              <span class="badge" id="event-venue-spend-val">$100 MXN</span>
+            </div>
+            <input type="range" id="event-venue-spend" min="0" max="1500" step="25" value="100" class="slider">
+          </div>
+
+          <div class="control-row">
+            <div class="control-header">
+              <label for="search-radius">Radio de Búsqueda</label>
+              <span class="badge" id="radius-val">1,000 m</span>
+            </div>
+            <input type="range" id="search-radius" min="200" max="2500" step="100" value="1000" class="slider">
+          </div>
+        </section>
+
+        <!-- Sección 3: Factores Económicos -->
+        <section class="config-section" aria-labelledby="section-factors-title">
+          <h2 id="section-factors-title" class="section-title">
+            <i data-lucide="cog"></i> 3. Ajuste de Factores Económicos
+          </h2>
+
+          <div class="accordion-group">
+            <!-- Factor Oxxos / Comercio -->
+            <details class="factor-details" open>
+              <summary>
+                <span class="summary-title"><i data-lucide="store" class="color-oxxo"></i> Tiendas de Conveniencia (Oxxos)</span>
+                <i data-lucide="chevron-down" class="chevron"></i>
+              </summary>
+              <div class="details-content">
+                <div class="control-row">
+                  <div class="control-header">
+                    <label for="oxxo-ticket">Ticket Promedio</label>
+                    <span class="badge-sub" id="oxxo-ticket-val">$95 MXN</span>
+                  </div>
+                  <input type="range" id="oxxo-ticket" min="40" max="250" step="5" value="95" class="slider">
+                </div>
+                <div class="control-row">
+                  <div class="control-header">
+                    <label for="oxxo-capture">Tasa de Captación</label>
+                    <span class="badge-sub" id="oxxo-capture-val">15%</span>
+                  </div>
+                  <input type="range" id="oxxo-capture" min="5" max="50" step="1" value="15" class="slider">
+                </div>
+                <p class="factor-help">Establece qué tanto gastará el asistente en tiendas cercanas y qué porcentaje de la asistencia total ingresará a ellas.</p>
+              </div>
+            </details>
+
+            <!-- Factor Hoteles / Hospedaje -->
+            <details class="factor-details">
+              <summary>
+                <span class="summary-title"><i data-lucide="hotel" class="color-hotel"></i> Hoteles / Hospedaje</span>
+                <i data-lucide="chevron-down" class="chevron"></i>
+              </summary>
+              <div class="details-content">
+                <div class="control-row">
+                  <div class="control-header">
+                    <label for="hotel-rate">Tarifa Promedio Noche</label>
+                    <span class="badge-sub" id="hotel-rate-val">$1,600 MXN</span>
+                  </div>
+                  <input type="range" id="hotel-rate" min="500" max="5000" step="100" value="1600" class="slider">
+                </div>
+                <div class="control-row">
+                  <div class="control-header">
+                    <label for="hotel-occupancy">Ocupación Atribuible al Evento</label>
+                    <span class="badge-sub" id="hotel-occupancy-val">65%</span>
+                  </div>
+                  <input type="range" id="hotel-occupancy" min="10" max="100" step="5" value="65" class="slider">
+                </div>
+                <p class="factor-help">Representa el gasto promedio por noche de hospedaje y qué porcentaje de las habitaciones disponibles en el radio se llenaron debido al evento.</p>
+              </div>
+            </details>
+
+            <!-- Factor Transporte / Metro -->
+            <details class="factor-details">
+              <summary>
+                <span class="summary-title"><i data-lucide="subway" class="color-transport"></i> Transporte Público (Estaciones)</span>
+                <i data-lucide="chevron-down" class="chevron"></i>
+              </summary>
+              <div class="details-content">
+                <div class="control-row">
+                  <div class="control-header">
+                    <label for="metro-usage">Asistentes en Transporte Público</label>
+                    <span class="badge-sub" id="metro-usage-val">40%</span>
+                  </div>
+                  <input type="range" id="metro-usage" min="10" max="95" step="5" value="40" class="slider">
+                </div>
+                <div class="control-row">
+                  <div class="control-header">
+                    <label for="metro-ticket">Gasto Diario de Tránsito</label>
+                    <span class="badge-sub" id="metro-ticket-val">$35 MXN</span>
+                  </div>
+                  <input type="range" id="metro-ticket" min="10" max="100" step="5" value="35" class="slider">
+                </div>
+                <p class="factor-help">Calcula la derrama de transporte y el consumo satélite en los quioscos o locales dentro/adyacentes a las estaciones del metro.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <!-- Sección 4: Dashboard y Estadísticas -->
+        <section class="config-section" aria-labelledby="section-stats-title">
+          <h2 id="section-stats-title" class="section-title">
+            <i data-lucide="pie-chart"></i> 4. Resultados de la Simulación
+          </h2>
+          
+          <div class="total-impact-card">
+            <span class="total-label">DERRAMA ECONÓMICA TOTAL ESTIMADA</span>
+            <div id="total-impact-value" class="total-value">$0.00 MXN</div>
+            <p class="total-desc">Potencial acumulado dentro del radio de <span id="radius-desc-val">1.0</span> km.</p>
+          </div>
+
+          <!-- Distribución del Gasto (CSS/SVG Donut Chart) -->
+          <div class="chart-container">
+            <div class="chart-header-row">
+              <h3>Distribución de la Derrama</h3>
+            </div>
+            <div class="chart-visual-box">
+              <svg class="donut-chart" viewBox="0 0 100 100" width="120" height="120" role="img" aria-label="Gráfica de distribución de la derrama económica">
+                <circle cx="50" cy="50" r="40" fill="transparent" stroke="var(--bg-card)" stroke-width="12"></circle>
+                <!-- Segmentos animados mediante JS -->
+                <circle id="segment-event" cx="50" cy="50" r="40" fill="transparent" stroke="var(--accent-blue)" stroke-width="12" stroke-dasharray="251.2" stroke-dashoffset="251.2" transform="rotate(-90 50 50)"></circle>
+                <circle id="segment-oxxo" cx="50" cy="50" r="40" fill="transparent" stroke="var(--accent-oxxo)" stroke-width="12" stroke-dasharray="251.2" stroke-dashoffset="251.2" transform="rotate(-90 50 50)"></circle>
+                <circle id="segment-hotel" cx="50" cy="50" r="40" fill="transparent" stroke="var(--accent-hotel)" stroke-width="12" stroke-dasharray="251.2" stroke-dashoffset="251.2" transform="rotate(-90 50 50)"></circle>
+                <circle id="segment-metro" cx="50" cy="50" r="40" fill="transparent" stroke="var(--accent-transport)" stroke-width="12" stroke-dasharray="251.2" stroke-dashoffset="251.2" transform="rotate(-90 50 50)"></circle>
+                <text x="50" y="55" text-anchor="middle" class="chart-center-text" id="chart-center-pct">100%</text>
+              </svg>
+              <div class="chart-legend">
+                <div class="legend-item" data-segment="event">
+                  <span class="dot bg-event"></span>
+                  <span class="legend-label">Event Direct: <strong id="pct-event">0%</strong></span>
+                </div>
+                <div class="legend-item" data-segment="oxxo">
+                  <span class="dot bg-oxxo"></span>
+                  <span class="legend-label">Oxxos (Comercio): <strong id="pct-oxxo">0%</strong></span>
+                </div>
+                <div class="legend-item" data-segment="hotel">
+                  <span class="dot bg-hotel"></span>
+                  <span class="legend-label">Hoteles: <strong id="pct-hotel">0%</strong></span>
+                </div>
+                <div class="legend-item" data-segment="metro">
+                  <span class="dot bg-metro"></span>
+                  <span class="legend-label">Metro / Transp.: <strong id="pct-metro">0%</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desglose numérico -->
+          <div class="breakdown-list">
+            <div class="breakdown-item">
+              <span class="breakdown-label"><i data-lucide="ticket"></i> Gasto en Evento (Boletaje/Consumo)</span>
+              <span class="breakdown-val" id="breakdown-val-event">$0.00</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label"><i data-lucide="store" class="color-oxxo"></i> Derrama en Oxxos / Comercio</span>
+              <span class="breakdown-val" id="breakdown-val-oxxo">$0.00</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label"><i data-lucide="hotel" class="color-hotel"></i> Derrama en Hoteles / Hospedaje</span>
+              <span class="breakdown-val" id="breakdown-val-hotel">$0.00</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label"><i data-lucide="subway" class="color-transport"></i> Derrama en Transporte Público</span>
+              <span class="breakdown-val" id="breakdown-val-metro">$0.00</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sección 5: Lista de Establecimientos Simulados -->
+        <section class="config-section" aria-labelledby="section-establishments-title">
+          <div class="section-header-flex">
+            <h2 id="section-establishments-title" class="section-title">
+              <i data-lucide="list"></i> 5. Puntos en el Radio (<span id="pois-count">0</span>)
+            </h2>
+            <button class="btn btn-secondary btn-sm" id="btn-regenerate-pois" title="Regenera ubicaciones aleatorias dentro del radio">
+              <i data-lucide="refresh-cw"></i> Regenerar
+            </button>
+          </div>
+          <p class="section-desc">Pasa el cursor sobre un comercio para ubicarlo en el mapa y ver su impacto.</p>
+          <div class="pois-list" id="pois-list-container">
+            <!-- Insertado por JS -->
+            <div class="no-pois-msg">No hay puntos simulados en este radio. Coloca un pin para generarlos.</div>
+          </div>
+        </section>
+
+        <!-- Sección 6: Fórmulas y Metodología (Colapsable) -->
+        <section class="config-section formula-accordion-section">
+          <details class="formula-details-root">
+            <summary class="formula-summary-root">
+              <span class="summary-title"><i data-lucide="function-square" class="color-formula"></i> Algoritmo & Fórmulas de Estimación</span>
+              <i data-lucide="chevron-down" class="chevron"></i>
+            </summary>
+            <div class="details-content formula-explanation">
+              <p>El algoritmo calcula la derrama económica proyectada integrando modelos de decaimiento espacial e impacto de conectividad:</p>
+              
+              <div class="formula-card">
+                <h4>Fórmula General</h4>
+                <div class="math-expr">
+                  D<sub>total</sub> = D<sub>evento</sub> + D<sub>oxxos</sub> + D<sub>hoteles</sub> + D<sub>transporte</sub>
+                </div>
+              </div>
+
+              <div class="formula-card">
+                <h4>1. Evento Directo (D<sub>evento</sub>)</h4>
+                <p>Gasto promedio de entrada más consumo interno, multiplicado por la asistencia:</p>
+                <div class="math-expr">
+                  D<sub>evento</sub> = A × (P<sub>boleto</sub> + C<sub>interno</sub>)
+                </div>
+                <ul class="formula-vars">
+                  <li><strong>A (Asistencia):</strong> <span class="val-var-a">25,000</span></li>
+                  <li><strong>P<sub>boleto</sub> (Precio Boleto):</strong> <span class="val-var-ticketprice">$350 MXN</span></li>
+                  <li><strong>C<sub>interno</sub> (Consumo Interno):</strong> <span class="val-var-venuespend">$100 MXN</span></li>
+                </ul>
+              </div>
+
+              <div class="formula-card">
+                <h4>2. Oxxos / Comercio Local (D<sub>oxxos</sub>)</h4>
+                <p>Usa un decaimiento cuadrático según la distancia (<strong>d<sub>i</sub></strong>) al evento, multiplicado por un <strong>Bono de Sinergia de Transporte (S<sub>metro</sub>)</strong> de hasta 1.5x (50% de incremento de concurrencia) si el comercio está a menos de 300m de una estación de metro:</p>
+                <div class="math-expr">
+                  D<sub>oxxos</sub> = &sum; A × T<sub>oxxo</sub> × C<sub>oxxo</sub> × (1 - d<sub>i</sub> / X)<sup>2</sup> × S<sub>metro</sub>
+                </div>
+                <ul class="formula-vars">
+                  <li><strong>T<sub>oxxo</sub> (Ticket Promedio):</strong> <span class="val-var-oxxoticket">$95 MXN</span></li>
+                  <li><strong>C<sub>oxxo</sub> (Tasa Captación):</strong> <span class="val-var-oxxocapture">15%</span></li>
+                  <li><strong>S<sub>metro</sub> (Sinergia Metro):</strong> 1 + 0.5 × (1 - d<sub>metro</sub> / 300) si d<sub>metro</sub> &lt; 300m (sino 1)</li>
+                  <li><strong>X (Radio):</strong> <span class="val-var-radius">1,000 m</span></li>
+                </ul>
+              </div>
+
+              <div class="formula-card">
+                <h4>3. Hoteles / Hospedaje (D<sub>hoteles</sub>)</h4>
+                <p>Calcula los ingresos generados por los cuartos reservados debido al evento (asumiendo estadía de 1.5 noches):</p>
+                <div class="math-expr">
+                  D<sub>hoteles</sub> = &sum; H<sub>j</sub> × O<sub>evento</sub> × Tarifa<sub>j</sub> × 1.5
+                </div>
+                <ul class="formula-vars">
+                  <li><strong>H<sub>j</sub>:</strong> Habitaciones totales del hotel (simulado).</li>
+                  <li><strong>O<sub>evento</sub> (Ocupación Evento):</strong> <span class="val-var-hotelocc">65%</span></li>
+                  <li><strong>Tarifa<sub>j</sub>:</strong> Tarifa por noche del hotel.</li>
+                </ul>
+              </div>
+
+              <div class="formula-card">
+                <h4>4. Transporte Público (D<sub>transporte</sub>)</h4>
+                <p>Determina la derrama secundaria y consumo menor en los locales adyacentes a las estaciones del metro:</p>
+                <div class="math-expr">
+                  D<sub>transporte</sub> = &sum; A × U<sub>transporte</sub> × G<sub>transito</sub> × (1 - d<sub>k</sub> / X)
+                </div>
+                <ul class="formula-vars">
+                  <li><strong>U<sub>transporte</sub> (% Uso):</strong> <span class="val-var-metrouse">40%</span></li>
+                  <li><strong>G<sub>transito</sub> (Gasto):</strong> <span class="val-var-metroticket">$35 MXN</span></li>
+                  <li><strong>d<sub>k</sub>:</strong> Distancia de la estación al evento.</li>
+                </ul>
+              </div>
+            </div>
+          </details>
+        </section>
+
+      </div>
+    </aside>
+
+    <!-- Trigger para abrir/cerrar sidebar en móviles -->
+    <button class="sidebar-toggle" id="sidebar-toggle-btn" aria-label="Alternar panel lateral" aria-controls="sidebar">
+      <i data-lucide="menu"></i>
+    </button>
+
+    <!-- Map Container -->
+    <main class="map-wrapper" role="main">
+      <div id="map"></div>
+
+      <!-- Loading Overlay -->
+      <div class="map-loading-overlay hide" id="map-loading-overlay">
+        <div class="spinner"></div>
+        <span>Consultando ubicaciones reales...</span>
+      </div>
+
+      <!-- Floating Controls en el Mapa -->
+      <div class="map-floating-controls">
+        <!-- Control de Mapa de Calor -->
+        <div class="floating-panel glassmorphic">
+          <div class="control-switch">
+            <input type="checkbox" id="toggle-heatmap" checked>
+            <label for="toggle-heatmap">
+              <span class="switch-inner"></span>
+              <span class="switch-text">Mapa de Calor Activo</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Leyenda -->
+        <div class="floating-panel legend-panel glassmorphic">
+          <span class="legend-title">Intensidad de Derrama</span>
+          <div class="gradient-bar"></div>
+          <div class="legend-labels">
+            <span>Baja</span>
+            <span>Media</span>
+            <span>Máxima</span>
+          </div>
+        </div>
+
+        <!-- Acciones Rápidas del Mapa -->
+        <div class="floating-actions">
+          <button class="btn btn-floating" id="btn-add-poi" title="Agregar comercio manualmente">
+            <i data-lucide="plus"></i> <span>Añadir Punto</span>
+          </button>
+          <button class="btn btn-floating btn-danger" id="btn-clear-map" title="Reiniciar simulación">
+            <i data-lucide="trash-2"></i> <span>Reiniciar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Toast de ayuda en el Mapa -->
+      <div class="map-help-toast" id="map-toast">
+        <i data-lucide="info"></i>
+        <span>Haz clic en el mapa para colocar el evento en una nueva ubicación.</span>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal para añadir puntos manualmente (Oxxo, Hotel, Metro) -->
+  <dialog class="custom-dialog glassmorphic" id="add-poi-dialog">
+    <div class="dialog-header">
+      <h3>Agregar Punto de Interés</h3>
+      <button class="dialog-close" id="btn-close-dialog" aria-label="Cerrar ventana"><i data-lucide="x"></i></button>
+    </div>
+    <form id="add-poi-form" method="dialog">
+      <p class="dialog-desc">Haz clic en el mapa para colocar el punto después de seleccionar su tipo y propiedades.</p>
+      
+      <div class="input-group">
+        <label for="new-poi-type">Tipo de Establecimiento</label>
+        <select id="new-poi-type">
+          <option value="oxxo" selected>Oxxo / Tienda de Conveniencia</option>
+          <option value="hotel">Hotel / Hospedaje</option>
+          <option value="metro">Estación de Metro / Transporte</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="new-poi-name">Nombre del Establecimiento</label>
+        <input type="text" id="new-poi-name" placeholder="Ej. Oxxo Insurgentes Sur" required>
+      </div>
+
+      <!-- Inputs condicionales basados en el tipo -->
+      <div id="poi-conditional-fields">
+        <!-- Oxxo fields -->
+        <div class="input-group font-subfields" id="field-oxxo-group">
+          <label for="new-poi-ticket">Ticket Promedio Personalizado ($)</label>
+          <input type="number" id="new-poi-ticket" value="95" min="20" max="1000">
+        </div>
+
+        <!-- Hotel fields -->
+        <div class="input-group font-subfields hide" id="field-hotel-group">
+          <div class="input-row-flex">
+            <div>
+              <label for="new-poi-rooms">Habitaciones</label>
+              <input type="number" id="new-poi-rooms" value="120" min="10" max="1000">
+            </div>
+            <div>
+              <label for="new-poi-rate">Tarifa Noche ($)</label>
+              <input type="number" id="new-poi-rate" value="1600" min="200" max="20000">
+            </div>
+          </div>
+        </div>
+
+        <!-- Metro fields -->
+        <div class="input-group font-subfields hide" id="field-metro-group">
+          <label for="new-poi-flow">Pasajeros Diarios Estimados</label>
+          <input type="number" id="new-poi-flow" value="45000" min="5000" max="250000">
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="btn btn-secondary" id="btn-cancel-poi" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="btn-confirm-poi-place" type="button">Colocar en Mapa</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Leaflet Heatmap Plugin -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Core Logic Script -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

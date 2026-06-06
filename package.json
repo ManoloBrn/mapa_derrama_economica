@@ -1,0 +1,14 @@
+{
+  "name": "econ-heat-visualizer",
+  "version": "1.0.0",
+  "description": "Visualizador e impacto de derrama económica alrededor de eventos con mapa de calor",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.2.11"
+  }
+}
