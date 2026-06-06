@@ -161,11 +161,11 @@ export function drawPoiMarkers(activePois, formatCurrency, formatNumber, callbac
         ${poi.name}
       </div>
       <div class="popup-desc">
-        ${poi.type === 'oxxo' ? `Oxxo / Tienda de conveniencia.<br>Ticket estimado: ${formatCurrency(poi.customTicket || 95)} MXN${synergyText}` : ''}
-        ${poi.type === 'hotel' ? `Hotel / Alojamiento.<br>${poi.rooms || 120} habitaciones.` : ''}
-        ${poi.type === 'metro' ? `Estación de metro.<br>Flujo diario: ${formatNumber(poi.flow || 45000)} pasajeros.` : ''}
-        ${poi.type === 'restaurant' ? `Restaurante / Cafetería.<br>Ticket estimado: ${formatCurrency(poi.customTicket || 180)} MXN` : ''}
-        ${poi.type === 'bar' ? `Bar / Cantina / Pub.<br>Ticket estimado: ${formatCurrency(poi.customTicket || 250)} MXN` : ''}
+        ${poi.type === 'oxxo' ? `Oxxo / Tienda de conveniencia.<br>Ticket estimado: ${formatCurrency(poi.calculatedTicket || 95)} MXN<br>Tasa captación: ${Math.round((poi.calculatedCaptureRate || 0) * 100)}%${synergyText}` : ''}
+        ${poi.type === 'hotel' ? `Hotel / Alojamiento.<br>${poi.rooms || 120} habitaciones.<br>Tarifa: ${formatCurrency(poi.calculatedRate || 1600)} MXN<br>Ocupación: ${Math.round((poi.calculatedOccupancy || 0) * 100)}%` : ''}
+        ${poi.type === 'metro' ? `Estación de metro.<br>Gasto tránsito: ${formatCurrency(poi.calculatedTicket || 35)} MXN<br>Uso tránsito: ${Math.round((poi.calculatedUsage || 0) * 100)}%` : ''}
+        ${poi.type === 'restaurant' ? `Restaurante / Cafetería.<br>Ticket estimado: ${formatCurrency(poi.calculatedTicket || 180)} MXN<br>Tasa captación: ${Math.round((poi.calculatedCaptureRate || 0) * 100)}%` : ''}
+        ${poi.type === 'bar' ? `Bar / Cantina / Pub.<br>Ticket estimado: ${formatCurrency(poi.calculatedTicket || 250)} MXN<br>Tasa captación: ${Math.round((poi.calculatedCaptureRate || 0) * 100)}%` : ''}
         <br>Distancia: ${Math.round(poi.distance)}m
       </div>
       <div class="popup-impact">

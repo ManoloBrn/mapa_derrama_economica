@@ -6,52 +6,29 @@ La herramienta utiliza un modelo híbrido de geolocalización que consulta ubica
 
 ---
 
-## 🚀 Características Clave
-
-* **Geolocalización Híbrida Real**:
-  * **OpenStreetMap (Overpass API)**: Utilizado por defecto de forma gratuita para obtener comercios, hoteles, transporte, restaurantes y bares reales en el mapa.
-  * **Google Places API (GCP)**: Integración premium configurable mediante una clave de API ingresada en la interfaz.
-* **Mapa de Calor Comercial Dinámico**: Visualiza la densidad de la derrama económica estimada mediante Leaflet y gradientes de calor interactivos.
-* **Buscador de Direcciones en Tiempo Real**:
-  * Cuadro de búsqueda integrado con autocompletado de sugerencias de direcciones (Nominatim API).
-  * Soporte de *debouncing* (retraso inteligente de 450 ms) para optimizar consultas de red y habilitar transiciones de mapa fluidas (`flyTo`).
-* **Modelos de Decaimiento Espacial Avanzados**:
-  * **Decaimiento Cuadrático**: Aplicado a comercios locales (Oxxos) y locales de entretenimiento nocturno (Bares), simulando que la concurrencia se concentra cerca del epicentro.
-  * **Decaimiento Lineal**: Aplicado a transporte público y restaurantes, modelando una disposición mayor de los asistentes a caminar distancias más largas.
-* **Sinergia de Tránsito Peatonal**: Incrementa hasta en un +50% la concurrencia y gasto en tiendas de conveniencia (Oxxos) situadas a menos de 300 metros de estaciones de metro.
-* **Exclusión del Ingreso del Evento**:
-  * Un interruptor (*switch*) premium que permite ocultar el gasto directo del boleto/consumo interno del estadio.
-  * Al activarse, la gráfica de dona SVG y los porcentajes recalculan la derrama externa comercial, aislando el impacto sobre los comercios locales.
-* **Colocación Manual de Puntos (POIs)**:
-  * Agrega comercios, hoteles, estaciones, restaurantes o bares personalizados directamente haciendo clic en el mapa, configurando variables de ticket promedio, habitaciones o flujos diarios.
-* **Dashboard Estadístico Robusto**:
-  * Widget de Derrama Económica Total animado mediante transiciones numéricas optimizadas a nivel de memoria (inmunes a arrastres rápidos de sliders).
-  * Gráfica de dona SVG responsiva con 6 segmentos que ilustra la distribución del impacto.
-  * Lista detallada de establecimientos ordenados por impacto, con efectos de hover interactivos cruzados con el mapa.
-
----
-
 ## 🛠️ Stack Tecnológico
 
-* **Núcleo**: HTML5 semántico y Vanilla JavaScript (ES Modules).
-* **Estilos**: Vanilla CSS con acabados de **Glassmorphism** oscuro y adaptabilidad móvil (Responsive).
-* **Mapas**: Leaflet (v1.9.4) + Leaflet.heat (v0.2.0).
-* **Iconografía**: Lucide Icons.
-* **Servidor & Bundler**: Vite (v5.2.11+).
+* **Core**: HTML5 semántico, CSS3 Vanilla con variables CSS (diseño responsivo y acabados oscuros de *Glassmorphism*).
+* **Lógica**: Vanilla JavaScript (ES6 Modules) sin frameworks pesados, garantizando tiempos de carga y ejecución ultra veloces.
+* **Mapas**: Leaflet (v1.9.4) para el renderizado interactivo de mapas y marcadores.
+* **Capa de Calor**: Leaflet.heat (v0.2.0) para visualizar gradientes térmicos de derrama económica.
+* **Iconografía**: Lucide Icons cargado dinámicamente.
+* **Servidor de Desarrollo & Bundler**: Vite (v5.2.11+) para empaquetado de producción optimizado y recarga en caliente (HMR).
 
 ---
 
 ## 💻 Requisitos Previos
 
-Asegúrate de tener instalado:
-* **Node.js** (versión 18.0 o superior recomendada).
-* **npm** (instalado automáticamente junto con Node.js).
+Para ejecutar y compilar este proyecto de manera local, asegúrate de tener instalado:
+* **Node.js**: Versión 18.0 o superior (se recomienda LTS).
+* **npm**: Versión 9.0 o superior (instalado automáticamente con Node.js).
+* **Navegador Web**: Cualquier navegador moderno con soporte para ES Modules (Chrome, Edge, Firefox, Safari).
 
 ---
 
 ## 📥 Instalación y Ejecución
 
-Sigue estos sencillos pasos para instalar y ejecutar el simulador localmente:
+Sigue estos pasos en tu terminal para configurar el proyecto localmente:
 
 ### 1. Instalar las dependencias
 Descarga Vite y las herramientas del entorno de desarrollo necesarias:
@@ -63,34 +40,70 @@ npm install
 ```bash
 npm run dev
 ```
-Al iniciarse, la terminal te mostrará enlaces similares a estos:
+La terminal mostrará los enlaces locales para abrir la aplicación:
 * **Local**: `http://localhost:5173/`
-* **Network**: `http://192.168.X.X:5173/` (Usa esta dirección para abrir la app en tu celular).
+* **Network**: `http://192.168.X.X:5173/` (Usa esta dirección para probar el simulador en dispositivos móviles conectados a la misma red WiFi).
 
 ### 3. Compilar para Producción
-Para optimizar el código y generar la build final lista para subir a un servidor web estático:
+Para compilar y minificar el código antes de subirlo a un servidor web estático:
 ```bash
 npm run build
 ```
-Los archivos optimizados se guardarán en la carpeta `dist/`.
+Los archivos optimizados y empaquetados se guardarán en la carpeta `dist/`.
 
 ### 4. Previsualizar la Compilación
-Para probar localmente cómo corre el código final compilado de producción:
+Para verificar localmente la build de producción final:
 ```bash
 npm run preview
 ```
 
 ---
 
-## 📐 Algoritmo de Estimación Económica
+## 🔑 Claves de API y Permisos Requeridos (Google Cloud)
 
-La derrama total se proyecta mediante la suma de seis pilares:
+Por defecto, la aplicación funciona **totalmente gratis y de forma ilimitada** utilizando el cliente de **OpenStreetMap (Overpass API)** para buscar puntos de interés e información geográfica real, con un fallback de simulación offline si el servidor está ocupado o no hay conexión.
 
-$$\text{Derrama}_{\text{Total}} = \text{Derrama}_{\text{Evento}} + \text{Derrama}_{\text{Oxxos}} + \text{Derrama}_{\text{Hoteles}} + \text{Derrama}_{\text{Transporte}} + \text{Derrama}_{\text{Restaurantes}} + \text{Derrama}_{\text{Bares}}$$
+Sin embargo, si deseas utilizar la integración premium con **Google Places API** para una precisión máxima y datos comerciales actualizados en tiempo real, deberás ingresar tu API Key en la sección **"Conexión a Datos Reales"** del panel lateral.
 
-1. **Evento Directo ($D_{\text{evento}}$)**: $\text{Asistencia} \times (\text{Precio Boleto} + \text{Consumo Interno})$.
-2. **Oxxos ($D_{\text{oxxos}}$)**: Basado en una tasa de captación y ticket promedio, aplicando un decaimiento cuadrático $(1 - d_i / X)^2$. Si se sitúa a menos de 300m de una estación de metro, se aplica sinergia de tránsito: $1 + 0.5 \times (1 - d_{\text{metro}} / 300)$.
-3. **Hoteles ($D_{\text{hoteles}}$)**: Habitaciones ocupadas atribuidas al evento en el radio, multiplicadas por la tarifa y estimando una estadía promedio de 1.5 noches.
-4. **Transporte ($D_{\text{transporte}}$)**: Gasto menor diario realizado por asistentes en quioscos/tránsito dentro del radio, con decaimiento lineal basado en la distancia.
-5. **Restaurantes ($D_{\text{restaurantes}}$)**: Consumo de alimentos/café estimado por la tasa de captación y ticket promedio, aplicando decaimiento lineal (mayor propensión a caminar por comida).
-6. **Bares ($D_{\text{bares}}$)**: Consumo de bebidas y entretenimiento nocturno estimado en un radio cercano, con decaimiento cuadrático (concentrado en las inmediaciones del recinto).
+### APIs de Google Cloud que debes activar en tu consola:
+1. **Maps JavaScript API**: Requerida para cargar el SDK cliente de Google Maps de forma asíncrona.
+2. **Places API**: Requerida para realizar las búsquedas de lugares cercanos (`nearbySearch`) de comercios, hoteles, transporte, restaurantes y bares en el radio.
+
+### Permisos y Configuración Necesarios en Google Cloud Console:
+* **Facturación Activa (Billing)**: Google requiere que el proyecto de GCP tenga una cuenta de facturación activa vinculada para habilitar las consultas de la Places API, incluso si entran en la cuota gratuita mensual.
+* **Restricciones de la API Key (Seguridad Recomendada)**:
+  * Restringe la clave de API para que solo pueda realizar llamadas desde el dominio de tu servidor (ej. `localhost` en desarrollo o tu dominio de producción).
+  * Restringe la API Key para que solo pueda invocar las librerías de **Maps JavaScript API** y **Places API** en la pestaña de restricciones de API.
+
+---
+
+## 📖 Guía de Uso del Simulador
+
+Una vez abierta la aplicación en tu navegador, puedes interactuar con el simulador siguiendo esta guía de uso paso a paso:
+
+### 1. Configurar la Ubicación del Evento
+* **Marcador Interactivos**: Arrastra el pin pulsante central del evento en el mapa a cualquier coordenada. La aplicación recalculará automáticamente la derrama de los comercios a su alrededor.
+* **Presets Rápidos**: Usa los botones superiores en la sección 1 para saltar a ubicaciones preconfiguradas: Estadio Azteca, Auditorio Nacional, Estadio BBVA (Monterrey) o Estadio Akron (Guadalajara).
+* **Buscador Nominatim**: Escribe una dirección, calle o lugar en la caja de búsqueda (ej. "Reforma", "Zapopan") y selecciona una de las sugerencias autocompletadas para trasladar el evento allí.
+
+### 2. Modificar Parámetros del Evento y Radio
+* En la sección 2 del panel lateral, ajusta la **Asistencia Estimada**, el **Precio Promedio del Boleto** y el **Consumo Interno** promedio del recinto.
+* Ajusta el **Radio de Búsqueda** (de 200m a 2.5km) para ampliar o reducir el área de cobertura del impacto económico. Al soltar el slider, se consultarán los POIs dentro del nuevo círculo de radio.
+
+### 3. Personalizar Factores Económicos
+* Abre los paneles del acordeón en la sección 3 para ajustar el **Ticket Promedio** y la **Tasa de Captación** para cada una de las 5 categorías de comercio (Oxxos, Hoteles, Transporte, Restaurantes, Bares).
+* Mover los sliders actualiza las fórmulas matemáticas al vuelo y redibuja la distribución en la gráfica de dona y widgets de manera instantánea.
+
+### 4. Alternar Modos de Visualización del Mapa
+* **Mapa de Calor**: Usa el switch "Mapa de Calor Activo" para ocultar o mostrar las manchas térmicas de concentración de dinero.
+* **Excluir Ingreso del Evento**: Activa el switch "Excluir Ingreso del Evento" para aislar el gasto directo del boleto/consumo dentro del estadio y analizar exclusivamente cómo se distribuye la derrama sobre los comercios externos de la zona.
+
+### 5. Simular Datos por Negocio (Alta Precisión)
+* Activa el switch **"Simular Datos por Negocio (Alta Precisión)"** en el mapa.
+* En lugar de multiplicar cada negocio por las constantes promedio globales de los sliders, el sistema simulará valores específicos para cada local individual (ticket de consumo y tasa de captación únicos).
+* Podrás ver este nivel de detalle reflejado tanto al pasar el cursor sobre los elementos de la lista en la barra lateral como en los popups interactivos al hacer clic en los marcadores del mapa.
+
+### 6. Añadir Comercios Manualmente
+* Haz clic en el botón flotante **"Añadir Punto"** en la esquina inferior derecha del mapa.
+* Elige el tipo de establecimiento (Oxxo, Hotel, Metro, Restaurante, Bar), asígnale un nombre y especifica sus parámetros personalizados.
+* Haz clic en **"Colocar en Mapa"** y pincha en cualquier parte de la pantalla para ubicar tu nuevo punto de interés, integrándose al instante en el cálculo de derrama de la sesión.

@@ -18,6 +18,18 @@ export function getDistance(lat1, lng1, lat2, lng2) {
 }
 
 /**
+ * Seedable hash function to generate a deterministic noise float between 0 and 1.
+ */
+function getDeterministicNoise(stringSeed) {
+  let hash = 0;
+  for (let i = 0; i < stringSeed.length; i++) {
+    hash = (hash << 5) - hash + stringSeed.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash % 1000) / 1000;
+}
+
+/**
  * Runs the economic simulation calculator based on current parameters and POIs.
  * Returns the calculated breakdowns and updates POI distance and individual impact.
  */
@@ -38,6 +50,7 @@ export function calculateEconomicImpact({
   restaurantCaptureRate,
   barTicket,
   barCaptureRate,
+  useIndividualData,
   allPois
 }) {
   // 1. Direct Event Revenue
@@ -56,9 +69,28 @@ export function calculateEconomicImpact({
     // Calculate distance using pure Haversine formula
     updatedPoi.distance = getDistance(poi.lat, poi.lng, eventLat, eventLng);
 
+    const noise = getDeterministicNoise(updatedPoi.id);
+
     if (updatedPoi.distance > radiusMeters) {
       updatedPoi.impact = 0;
       updatedPoi.metroSynergy = null;
+      // Also calculate defaults to prevent undefined variables in UI
+      if (updatedPoi.type === 'oxxo') {
+        updatedPoi.calculatedTicket = updatedPoi.customTicket || (useIndividualData ? (75 + noise * 60) : oxxoTicket);
+        updatedPoi.calculatedCaptureRate = useIndividualData ? (0.08 + noise * 0.12) : oxxoCaptureRate;
+      } else if (updatedPoi.type === 'hotel') {
+        updatedPoi.calculatedRate = updatedPoi.rate || (useIndividualData ? (1200 + noise * 1000) : hotelRate);
+        updatedPoi.calculatedOccupancy = useIndividualData ? (0.70 + noise * 0.25) : hotelOccupancy;
+      } else if (updatedPoi.type === 'metro') {
+        updatedPoi.calculatedTicket = useIndividualData ? (15 + noise * 25) : metroTicket;
+        updatedPoi.calculatedUsage = useIndividualData ? (0.25 + noise * 0.35) : metroUsage;
+      } else if (updatedPoi.type === 'restaurant') {
+        updatedPoi.calculatedTicket = updatedPoi.customTicket || (useIndividualData ? (100 + noise * 200) : restaurantTicket);
+        updatedPoi.calculatedCaptureRate = useIndividualData ? (0.06 + noise * 0.10) : restaurantCaptureRate;
+      } else if (updatedPoi.type === 'bar') {
+        updatedPoi.calculatedTicket = updatedPoi.customTicket || (useIndividualData ? (150 + noise * 250) : barTicket);
+        updatedPoi.calculatedCaptureRate = useIndividualData ? (0.05 + noise * 0.09) : barCaptureRate;
+      }
       return updatedPoi;
     }
 
@@ -67,8 +99,13 @@ export function calculateEconomicImpact({
 
     if (updatedPoi.type === 'oxxo') {
       // Oxxo Impact: Quadratic decay (people purchase closer)
-      const ticket = updatedPoi.customTicket || oxxoTicket;
-      const baseImpact = attendance * ticket * oxxoCaptureRate * Math.pow(proximity, 2);
+      const ticket = updatedPoi.customTicket || (useIndividualData ? (75 + noise * 60) : oxxoTicket);
+      const captureRate = useIndividualData ? (0.08 + noise * 0.12) : oxxoCaptureRate;
+      
+      updatedPoi.calculatedTicket = ticket;
+      updatedPoi.calculatedCaptureRate = captureRate;
+
+      const baseImpact = attendance * ticket * captureRate * Math.pow(proximity, 2);
       
       // Transit Synergy Multiplier: Search closest metro station
       let metroMultiplier = 1;
@@ -104,25 +141,46 @@ export function calculateEconomicImpact({
     else if (updatedPoi.type === 'hotel') {
       // Hotel Impact: Accommodations (1.5 average night stay)
       const rooms = updatedPoi.rooms || 120;
-      const rate = updatedPoi.rate || hotelRate;
-      updatedPoi.impact = rooms * hotelOccupancy * rate * 1.5;
+      const rate = updatedPoi.rate || (useIndividualData ? (1200 + noise * 1000) : hotelRate);
+      const occupancy = useIndividualData ? (0.70 + noise * 0.25) : hotelOccupancy;
+
+      updatedPoi.calculatedRate = rate;
+      updatedPoi.calculatedOccupancy = occupancy;
+
+      updatedPoi.impact = rooms * occupancy * rate * 1.5;
       impactHoteles += updatedPoi.impact;
     } 
     else if (updatedPoi.type === 'metro') {
       // Transit Impact: Linear decay based on distance
-      updatedPoi.impact = attendance * metroUsage * metroTicket * proximity;
+      const usage = useIndividualData ? (0.25 + noise * 0.35) : metroUsage;
+      const ticket = useIndividualData ? (15 + noise * 25) : metroTicket;
+
+      updatedPoi.calculatedUsage = usage;
+      updatedPoi.calculatedTicket = ticket;
+
+      updatedPoi.impact = attendance * usage * ticket * proximity;
       impactMetro += updatedPoi.impact;
     }
     else if (updatedPoi.type === 'restaurant') {
       // Restaurant Impact: Linear decay (people can walk further)
-      const ticket = updatedPoi.customTicket || restaurantTicket;
-      updatedPoi.impact = attendance * ticket * restaurantCaptureRate * proximity;
+      const ticket = updatedPoi.customTicket || (useIndividualData ? (100 + noise * 200) : restaurantTicket);
+      const captureRate = useIndividualData ? (0.06 + noise * 0.10) : restaurantCaptureRate;
+
+      updatedPoi.calculatedTicket = ticket;
+      updatedPoi.calculatedCaptureRate = captureRate;
+
+      updatedPoi.impact = attendance * ticket * captureRate * proximity;
       impactRestaurants += updatedPoi.impact;
     }
     else if (updatedPoi.type === 'bar') {
       // Bar Impact: Quadratic decay (concentrates closer to venue)
-      const ticket = updatedPoi.customTicket || barTicket;
-      updatedPoi.impact = attendance * ticket * barCaptureRate * Math.pow(proximity, 2);
+      const ticket = updatedPoi.customTicket || (useIndividualData ? (150 + noise * 250) : barTicket);
+      const captureRate = useIndividualData ? (0.05 + noise * 0.09) : barCaptureRate;
+
+      updatedPoi.calculatedTicket = ticket;
+      updatedPoi.calculatedCaptureRate = captureRate;
+
+      updatedPoi.impact = attendance * ticket * captureRate * Math.pow(proximity, 2);
       impactBars += updatedPoi.impact;
     }
 

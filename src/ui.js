@@ -98,7 +98,8 @@ const elements = {
   addressSearchInput: document.getElementById('address-search-input'),
   btnSearchClear: document.getElementById('btn-search-clear'),
   searchSuggestions: document.getElementById('search-suggestions'),
-  excludeEventSpend: document.getElementById('exclude-event-spend')
+  excludeEventSpend: document.getElementById('exclude-event-spend'),
+  toggleIndividualData: document.getElementById('toggle-individual-data')
 };
 
 // Formatting helpers
@@ -306,6 +307,10 @@ export function isExcludeEventSpendChecked() {
   return elements.excludeEventSpend.checked;
 }
 
+export function isIndividualDataChecked() {
+  return elements.toggleIndividualData.checked;
+}
+
 export function updateDashboardUI(data, excludeEvent = false) {
   // 1. Calculate displayed total based on whether event spend is excluded
   const displayTotal = excludeEvent 
@@ -446,6 +451,13 @@ export function renderPOIListHTML(calculatedPois, callbacks) {
       </span>`;
     }
 
+    let detailsText = '';
+    if (poi.type === 'oxxo') detailsText = `Ticket: ${formatCurrencyCompact(poi.calculatedTicket || 95)} | Cap: ${Math.round((poi.calculatedCaptureRate || 0) * 100)}%`;
+    if (poi.type === 'hotel') detailsText = `Tarifa: ${formatCurrencyCompact(poi.calculatedRate || 1600)} | Ocup: ${Math.round((poi.calculatedOccupancy || 0) * 100)}%`;
+    if (poi.type === 'metro') detailsText = `Gasto: ${formatCurrencyCompact(poi.calculatedTicket || 35)} | Uso: ${Math.round((poi.calculatedUsage || 0) * 100)}%`;
+    if (poi.type === 'restaurant') detailsText = `Ticket: ${formatCurrencyCompact(poi.calculatedTicket || 180)} | Cap: ${Math.round((poi.calculatedCaptureRate || 0) * 100)}%`;
+    if (poi.type === 'bar') detailsText = `Ticket: ${formatCurrencyCompact(poi.calculatedTicket || 250)} | Cap: ${Math.round((poi.calculatedCaptureRate || 0) * 100)}%`;
+
     div.innerHTML = `
       <div class="poi-info">
         <div class="poi-icon">
@@ -453,7 +465,7 @@ export function renderPOIListHTML(calculatedPois, callbacks) {
         </div>
         <div class="poi-details-text">
           <span class="poi-name">${poi.name}</span>
-          <span class="poi-dist">A ${Math.round(poi.distance)} m del evento</span>
+          <span class="poi-dist">A ${Math.round(poi.distance)} m | ${detailsText}</span>
           ${synergyBadge}
         </div>
       </div>
@@ -591,6 +603,11 @@ export function registerUIEventListeners(callbacks) {
   // Heatmap toggler
   elements.toggleHeatmap.addEventListener('change', () => {
     if (callbacks.onHeatmapToggled) callbacks.onHeatmapToggled(elements.toggleHeatmap.checked);
+  });
+
+  // Individual data toggler
+  elements.toggleIndividualData.addEventListener('change', () => {
+    if (callbacks.onIndividualDataToggled) callbacks.onIndividualDataToggled(elements.toggleIndividualData.checked);
   });
 
   // Regenerate POIs

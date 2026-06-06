@@ -41,7 +41,8 @@ import {
   formatNumber,
   showSuggestions,
   hideSuggestions,
-  isExcludeEventSpendChecked
+  isExcludeEventSpendChecked,
+  isIndividualDataChecked
 } from './ui.js';
 
 // Cache for last calculated POIs to share with cross-hover events
@@ -60,6 +61,7 @@ function recalculate() {
     eventLat: eventLatLng.lat,
     eventLng: eventLatLng.lng,
     allPois: state.getAllPois(),
+    useIndividualData: isIndividualDataChecked(),
     ...params
   });
 
@@ -228,6 +230,10 @@ function handleExcludeEventChanged() {
   recalculate();
 }
 
+function handleIndividualDataToggled() {
+  recalculate();
+}
+
 async function handleRegenerateClicked() {
   const latlng = getEventLocation();
   const params = getEventParams();
@@ -375,7 +381,8 @@ function init() {
     onAddPoiConfirmed: handleAddPoiConfirmed,
     onSearchInput: handleSearchInput,
     onSearchCleared: handleSearchCleared,
-    onExcludeEventChanged: handleExcludeEventChanged
+    onExcludeEventChanged: handleExcludeEventChanged,
+    onIndividualDataToggled: handleIndividualDataToggled
   });
   
   // 4. Run default simulation preset
